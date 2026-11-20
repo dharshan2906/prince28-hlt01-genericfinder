@@ -1,0 +1,35 @@
+[
+  {
+    "id": "001",
+    "drug_code": "",
+    "generic_name": "",
+    "strength": "",
+    "dosage_form": "",
+    "release_type": "",
+    "pack_size": "",
+    "mrp": "",
+    "therapeutic_group": ""
+  },
+  {
+    "id": "002",
+    "drug_code": "",
+    "generic_name": "",
+    "strength": "",
+    "dosage_form": "",
+    "release_type": "",
+    "pack_size": "",
+    "mrp": "",
+    "therapeutic_group": ""
+  },
+  {
+    "id": "003",
+    "drug_code": "",
+    "generic_name": "",
+    "strength": "",
+    "dosage_form": "",
+    "release_type": "",
+    "pack_size": "",
+    "mrp": "",
+    "therapeutic_group": ""
+  }
+]
