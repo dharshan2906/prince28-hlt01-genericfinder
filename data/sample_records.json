@@ -1,35 +1,35 @@
 [
   {
     "id": "001",
-    "drug_code": "",
-    "generic_name": "",
-    "strength": "",
-    "dosage_form": "",
-    "release_type": "",
-    "pack_size": "",
-    "mrp": "",
-    "therapeutic_group": ""
+    "drug_code": "1.1.1",
+    "generic_name": "Halothane",
+    "strength": null,
+    "dosage_form": "Liquid for inhalation",
+    "release_type": null,
+    "pack_size": null,
+    "mrp": null,
+    "therapeutic_group": "General Anaesthetics and Oxygen"
   },
   {
     "id": "002",
-    "drug_code": "",
-    "generic_name": "",
-    "strength": "",
-    "dosage_form": "",
-    "release_type": "",
-    "pack_size": "",
-    "mrp": "",
-    "therapeutic_group": ""
+    "drug_code": "1.1.2",
+    "generic_name": "Isoflurane",
+    "strength": null,
+    "dosage_form": "Liquid for inhalation",
+    "release_type": null,
+    "pack_size": null,
+    "mrp": null,
+    "therapeutic_group": "General Anaesthetics and Oxygen"
   },
   {
     "id": "003",
-    "drug_code": "",
-    "generic_name": "",
-    "strength": "",
-    "dosage_form": "",
-    "release_type": "",
-    "pack_size": "",
-    "mrp": "",
-    "therapeutic_group": ""
+    "drug_code": "1.1.4",
+    "generic_name": "Nitrous oxide",
+    "strength": null,
+    "dosage_form": "As licensed for medical purpose",
+    "release_type": null,
+    "pack_size": null,
+    "mrp": null,
+    "therapeutic_group": "General Anaesthetics and Oxygen"
   }
 ]
