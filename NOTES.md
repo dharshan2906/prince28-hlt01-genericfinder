@@ -252,3 +252,65 @@ The newer schema remains compatible with the older application because the migra
 
 - UptimeRobot checks `/health` every 5 minutes; alerts go to my email.
 - One thing that would make my live app faster on its first request: Keep the Render service always running to prevent cold starts.
+
+# D06 · Collecting the Corpus
+
+**Project:** GenericFinder · HLT-01
+**Repository:** `prince28-hlt01-genericfinder`
+
+## 1. Corpus Collection Summary
+
+- **Start target:** Jan Aushadhi product list (2,000+ rows) and NLEM 2022.
+- **Successfully downloaded:** 51 files through the FastAPI documentation sitemap, plus 2 Markdown files from the Git repository.
+- **Total confirmed additions:** 53 files.
+- **Pages and total MB:** Pending successful generation of `DATASET.md`. These measurements have not yet been verified.
+- **Collection methods used:**
+  - URL list – processed `data/sources.csv`.
+  - Git repository – collected Markdown files from my GitHub repository.
+  - Sitemap – collected matching documentation URLs from FastAPI.
+  - By hand – not successfully used for a verified document.
+
+## 2. Licence Check
+
+| Source | Licence or terms, in my words | May I show full text in answers? |
+|---|---|---|
+| FastAPI documentation | MIT License was specified during collection; verify it against the source repository's licence. | Yes, if MIT coverage is confirmed and attribution is retained. |
+| My GitHub repository | Licence or terms were entered as a placeholder and need verification. | Not confirmed. |
+| NLEM 2022 (NHSRC) | Reuse permission has not been verified. | No full-text reuse until permission is confirmed. |
+| PMBI / Jan Aushadhi / NPPA | Official government sources; individual document reuse terms still need verification. | Not confirmed. |
+
+## 3. robots.txt Check
+
+- **Site:** `https://fastapi.tiangolo.com/`
+- **robots.txt:** Its contents have not yet been recorded in my terminal notes, so I cannot claim specific allow/disallow rules.
+- **Blocked requests:** The sitemap download reported `blocked=0` and `failed=0`.
+- **Action taken:** Used the sitemap to identify documentation URLs and downloaded the matching pages through the project downloader.
+
+## 4. Kill and Resume Test
+
+| Run | Result |
+|---|---|
+| Run 1 | Ctrl+C interruption count not recorded. |
+| Run 2 | Sitemap URL download completed: `downloaded=51`, `skipped=10`. |
+| Run 3 | A separate completed resume test with `downloaded=0` has not yet been recorded. |
+
+**Status:** The successful download and skip behaviour are demonstrated, but the explicit Ctrl+C and resume test still needs to be performed and documented.
+
+## 5. Capacity Planning
+
+- **Tokens per page, measured:** Pending `DATASET.md` generation.
+- **Full corpus:** Pending measured capacity report.
+- **Full corpus target:** 3,000 pages.
+- **Tokens, chunks, embedding cost and vector storage:** Not yet verified; these must come from `docs/CAPACITY.md`.
+
+The capacity calculation will use measured document text, estimated tokens, chunk size, embedding dimensions and the configured embedding price rather than arbitrary assumptions.
+
+## 6. One Thing That Went Wrong and How I Fixed It
+
+Initially, I used the placeholder sitemap URL `https://SITE/sitemap.xml`, which caused a DNS resolution error (`getaddrinfo failed`). I replaced it with the actual FastAPI sitemap URL:
+
+`https://fastapi.tiangolo.com/sitemap.xml`
+
+I then applied the `/tutorial/` filter and a 300-URL limit. The sitemap returned 154 URLs, of which 51 matched. All 51 matching pages were downloaded successfully, with zero blocked and zero failed downloads.
+
+**Learning:** Placeholder URLs must be replaced with real endpoints before running collection commands. Successful downloads must also be checked for source relevance and licence compliance before being included in the final medicine corpus.
