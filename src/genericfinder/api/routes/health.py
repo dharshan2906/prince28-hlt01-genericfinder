@@ -16,6 +16,12 @@ def health(settings: SettingsDep) -> dict[str, str]:
     }
 
 
+@router.head("/health", include_in_schema=False)
+def health_head() -> Response:
+    """HEAD-compatible liveness probe for monitors that only send HEAD requests."""
+    return Response(status_code=200)
+
+
 @router.get("/ready")
 async def ready(db_ok: DbCheckDep, response: Response) -> dict:
     """Readiness: can this instance serve traffic right now?"""
