@@ -81,3 +81,101 @@ Stop with `Ctrl+C`, then `docker compose down`. Add `-v` to also delete the data
 [![Uptime (30 days)](https://img.shields.io/uptimerobot/ratio/m804787866-a994cf42c71d0ff3ae5fa765)](https://prince28-hlt01-genericfinder.onrender.com/health)
 
 **Live:** https://prince28-hlt01-genericfinder.onrender.com · [API docs](https://prince28-hlt01-genericfinder.onrender.com/docs) · [health](https://prince28-hlt01-genericfinder.onrender.com/health)
+
+
+##  Day 07: Corpus Parsing
+
+Run all commands from the project root:
+
+```powershell
+cd C:\class\GENAI\prince28-hlt01-genericfinder
+```
+
+### 1. Source Collection
+
+```powershell
+# Fetch Markdown files from a GitHub repository
+uv run python scripts/fetch.py repo fastapi/fastapi --path docs --ext .md --source fastapi-docs --licence "MIT License"
+
+# Process URLs listed in the sources manifest
+uv run python scripts/fetch.py urls
+
+# View the source manifest
+Get-Content data/sources.csv
+```
+
+### 2. Dataset Report
+
+```powershell
+# Generate a full dataset and capacity report
+uv run python scripts/dataset_report.py --full-pages 3000
+```
+
+### 3. Database Migrations
+
+```powershell
+# Generate a migration automatically from model changes
+uv run alembic revision --autogenerate -m "add page headings and parse failures"
+
+# Apply migrations to the database
+uv run alembic upgrade head
+```
+
+### 4. Corpus Parsing
+
+```powershell
+# Parse all files in the corpus
+uv run python scripts/parse_corpus.py
+
+# Retry previously failed files
+uv run python scripts/parse_corpus.py --retry-failed
+
+# Parse a limited number of files
+uv run python scripts/parse_corpus.py --limit 20
+```
+
+### 5. Check Parsing Failures in PostgreSQL
+
+Run in the Neon SQL Editor:
+
+```sql
+SELECT
+    reason,
+    COUNT(*) AS files,
+    MIN(path) AS example
+FROM parse_failures
+GROUP BY reason
+ORDER BY files DESC;
+```
+
+### 6. Compare Parsers
+
+```powershell
+# Compare the two available parsers on selected difficult files
+uv run python scripts/compare_parsers.py
+```
+
+### 7. Code Quality and Testing
+
+```powershell
+# Run linting and formatting checks
+uv run poe lint
+
+# Run tests with coverage report
+uv run poe cov
+```
+
+### 8. Git Status
+
+```powershell
+# Check current branch and working-tree changes
+git status
+
+# Review staged and unstaged changes
+git diff
+
+# Review staged changes
+git diff --cached
+```
+
+**Key Result:** The corpus contained 63 files. Parsing successfully processed 62 files and stored 218 pages in PostgreSQL, achieving 98.41% file parsing coverage. One scanned/image-based PDF remained unsuccessful because of `no_text_layer`.
