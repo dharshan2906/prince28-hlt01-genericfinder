@@ -217,3 +217,38 @@ curl.exe -i http://localhost:8000/health
 curl.exe -i http://localhost:8000/ready
 
 docker
+
+## D05 · CI/CD and going live
+
+- **Live URL:** https://prince28-hlt01-genericfinder.onrender.com
+- **CI run for pull request 1:** https://github.com/dharshan2906/prince28-hlt01-genericfinder/actions
+- **First deploy that ran by itself:** https://github.com/dharshan2906/prince28-hlt01-genericfinder/actions
+- **Merge clicked at:** 10:15 AM → "Smoke test passed" at 10:19 AM → **Lead time: 4 min**
+
+### Smoke test output from that CD run
+
+```text
+✓ Live URL responded successfully
+✓ HTTP status: 200 OK
+✓ Application health: ok
+✓ Smoke test passed
+```
+
+### Rollback drill
+
+- Rolled back to sha `92d8a64`: started 10:30 AM, smoke passed 10:34 AM (**4 min**).
+- Rolled forward to sha `565cda0`: **5 min**.
+- During the rollback, the database stayed on the newer schema. Why is that safe here?
+
+The rollback changes only the application version; it does not reverse database migrations.
+The newer schema remains compatible with the older application because the migrations are backward-compatible.
+
+### Where my secrets live
+
+- Neon string: GitHub Secret `DATABASE_URL` + Render environment. Not in Git, not in the image.
+- Render deploy hook: GitHub Secret `RENDER_DEPLOY_HOOK` only.
+
+### Monitoring
+
+- UptimeRobot checks `/health` every 5 minutes; alerts go to my email.
+- One thing that would make my live app faster on its first request: Keep the Render service always running to prevent cold starts.

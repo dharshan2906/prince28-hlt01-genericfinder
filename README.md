@@ -75,3 +75,9 @@ Stop with `Ctrl+C`, then `docker compose down`. Add `-v` to also delete the data
 | Integration tests (needs `docker compose up`) | `make test-integration` | `uv run poe test-integration` |
 | Coverage report | `make cov` | `uv run poe cov` |
 | Lint and format check | `make lint` | `uv run poe lint` |
+
+[![CI](https://github.com/dharshan2906/prince28-hlt01-genericfinder/actions/workflows/ci.yml/badge.svg)](https://github.com/dharshan2906/prince28-hlt01-genericfinder/actions/workflows/ci.yml)
+[![Live](https://img.shields.io/website?url=https%3A%2F%2Fprince28-hlt01-genericfinder.onrender.com%2Fhealth&label=live)](https://prince28-hlt01-genericfinder.onrender.com/docs)
+[![Uptime (30 days)](https://img.shields.io/uptimerobot/ratio/m804787866-a994cf42c71d0ff3ae5fa765)](https://prince28-hlt01-genericfinder.onrender.com/health)
+
+**Live:** https://prince28-hlt01-genericfinder.onrender.com · [API docs](https://prince28-hlt01-genericfinder.onrender.com/docs) · [health](https://prince28-hlt01-genericfinder.onrender.com/health)
