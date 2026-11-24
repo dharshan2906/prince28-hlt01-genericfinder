@@ -25,6 +25,10 @@ FROM python:3.12-slim
 RUN groupadd --system app && useradd --system --gid app --home-dir /app --no-create-home app
 WORKDIR /app
 
+# CI passes the source commit so /health reports the exact deployed revision.
+ARG GIT_SHA=dev
+ENV GIT_SHA=${GIT_SHA}
+
 # Only what the app needs at runtime: the venv, migrations, scripts and seed data.
 COPY --from=builder --chown=app:app /app/.venv /app/.venv
 COPY --chown=app:app alembic.ini ./
