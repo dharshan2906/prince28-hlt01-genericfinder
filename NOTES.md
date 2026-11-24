@@ -314,3 +314,55 @@ Initially, I used the placeholder sitemap URL `https://SITE/sitemap.xml`, which 
 I then applied the `/tutorial/` filter and a 300-URL limit. The sitemap returned 154 URLs, of which 51 matched. All 51 matching pages were downloaded successfully, with zero blocked and zero failed downloads.
 
 **Learning:** Placeholder URLs must be replaced with real endpoints before running collection commands. Successful downloads must also be checked for source relevance and licence compliance before being included in the final medicine corpus.
+
+## D07 · Parser comparison
+
+<!-- parsers:start -->
+| File | Parsers (A / B) | Pages | A found | B found | Time (A / B) | Better, why |
+|---|---|---|---|---|---|---|
+| pmbi-medicines-brochure-18102024-aeb9ec25.pdf | PyMuPDF / pypdf | - | FAILED: no_text_layer | FAILED: no_text_layer | 5.83 s / 8.37 s | Neither; both fail because the PDF has no text layer |
+| nlem2022-457ffe96.pdf | PyMuPDF / pypdf | 135 | 266,280 chars, 53 headings, 101 tables | 109,147 chars, 0 headings, 0 tables | 17.47 s / 13.89 s | PyMuPDF; extracts more text, headings and tables |
+| sql-databases-5b402114.html | trafilatura / strip tags | 47 | 96,339 chars, 47 headings, 0 tables | 117,570 chars, 35 headings, 0 tables | 3.55 s / 0.07 s | Trafilatura; better heading structure, strip tags is faster |
+| view-more-f304ce98.html | trafilatura / strip tags | 1 | 23,090 chars, 0 headings, 0 tables | 25,181 chars, 0 headings, 0 tables | 0.71 s / 0.03 s | Needs manual inspection; strip tags is faster |
+| oauth2-jwt-657ba832.html | trafilatura / strip tags | 19 | 40,295 chars, 19 headings, 0 tables | 50,527 chars, 16 headings, 0 tables | 1.09 s / 0.02 s | Trafilatura; better heading structure, strip tags is faster |
+| simple-oauth2-1593ce4a.html | trafilatura / strip tags | 13 | 30,758 chars, 23 headings, 0 tables | 41,152 chars, 20 headings, 0 tables | 0.77 s / 0.03 s | Trafilatura; identifies more headings |
+| query-params-str-validations-22be137a.html | trafilatura / strip tags | 10 | 27,024 chars, 22 headings, 0 tables | 36,479 chars, 3 headings, 0 tables | 1.05 s / 0.02 s | Trafilatura; much better heading extraction |
+| bigger-applications-18edb09b.html | trafilatura / strip tags | 9 | 24,470 chars, 23 headings, 0 tables | 32,391 chars, 0 headings, 0 tables | 0.52 s / 0.02 s | Trafilatura; extracts meaningful heading structure |
+| response-model-188ea97b.html | trafilatura / strip tags | 8 | 20,396 chars, 11 headings, 0 tables | 27,788 chars, 2 headings, 0 tables | 0.51 s / 0.01 s | Trafilatura; better heading extraction |
+| classes-as-dependencies-e5b92d20.html | trafilatura / strip tags | 6 | 13,465 chars, 10 headings, 0 tables | 20,549 chars, 0 headings, 0 tables | 0.48 s / 0.02 s | Trafilatura; identifies headings that strip tags misses |
+<!-- parsers:end -->
+
+### D07 · Parsing my corpus
+
+- **Files in the manifest:** 63
+- **Successfully parsed:** 62
+- **Failed:** 1
+- **Pages stored in PostgreSQL:** 218
+- **Parsing coverage:** 98.41% of files
+
+The parser successfully processed 62 out of 63 files. One PDF could not be parsed because it did not contain an extractable text layer.
+
+### Failures by reason
+
+| Reason | Files | What I did |
+|---|---:|---|
+| `no_text_layer` | 1 | Retried parsing using `--retry-failed` and confirmed that the PDF still had no extractable text. Recorded it as a known parsing limitation. |
+
+- **The one I investigated:** `pmbi-medicines-brochure-18102024-aeb9ec25.pdf`
+- **Reason:** `no_text_layer`
+- **Fix:** Retried the parser and verified the failure. The file requires OCR or an alternative text-based copy; it has not yet been successfully parsed.
+
+### What I saw when I read my parsed pages
+
+- **A page where the heading path is right:** To be filled after checking an actual parsed page in Neon SQL Editor.
+- **Something that came out wrong:** To be filled after inspecting an extracted page for missing headings, repeated headers, footers or unwanted content.
+- **A table:** To be filled after checking whether an extracted table appears as a Markdown grid or loose text.
+
+### My parser choice
+
+- **For PDFs I use PyMuPDF** because the NLEM 2022 comparison produced **266,280 characters, 53 headings and 101 tables**, compared with pypdf's **109,147 characters, 0 headings and 0 tables**. Although PyMuPDF took 17.47 seconds compared with pypdf's 13.89 seconds, it provided substantially richer structured output.
+- **A kind of document neither parser handles well:** Scanned or image-only PDFs without an extractable text layer, such as the PMBI medicines brochure.
+
+### One thing that went wrong today, and how I fixed it
+
+The PMBI medicines brochure failed during parsing with the `no_text_layer` error. Initially, I retried the failed file using `--retry-failed`, but the same issue remained. I checked the failure summary in PostgreSQL and confirmed that the problem was limited to one file. This helped distinguish a document-level extraction issue from a problem with the overall parsing pipeline. The remaining 62 files were successfully processed, giving the corpus a parsing coverage of 98.41%.
