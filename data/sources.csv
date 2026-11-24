@@ -1,0 +1,72 @@
+# Sources for GenericFinder. One row per file to download. Lines starting with # are notes.
+# Start target: Jan Aushadhi product list (2,000+ rows) + NLEM 2022
+# Where to look:
+#   https://janaushadhi.gov.in/
+#   https://www.pmbi.co.in/ (Product & MRP List)
+#   https://qps.nhsrcindia.org/sites/default/files/2022-09/nlem2022.pdf
+#   https://www.nppaindia.nic.in/
+# Terms on my project card: Public government lists. Always show the list date because prices change.
+url,source,licence,title
+https://qps.nhsrcindia.org/sites/default/files/2022-09/nlem2022.pdf,nhsrc,"Reuse permission unverified",National List of Essential Medicines 2022
+https://www.pmbi.co.in/ProductList.aspx,pmbi,"Reuse permission unverified",PMBI Product and MRP List
+https://janaushadhi.gov.in/product-portfolio/product-view-list,janaushadhi,"Reuse permission unverified",Jan Aushadhi Product List
+https://nppa.gov.in/en/nlem2015,nppa,"Reuse permission unverified",National List of Essential Medicines 2015
+https://nppa.gov.in/en/compendiumofprice,nppa,"Reuse permission unverified",Compendium of Medicine Prices
+https://nppa.gov.in/en/therapeuticcategorywiseceilingpricelist,nppa,"Reuse permission unverified",Therapeutic Category Wise Ceiling Price List
+https://nppa.gov.in/en/dpco2013,nppa,"Reuse permission unverified",Drugs Prices Control Order 2013
+https://nppa.gov.in/en/view_more?id=4,nppa,"Reuse permission unverified",NPPA Circulars and Orders
+https://nppa.gov.in/en/cappmsguidelines,nppa,"Reuse permission unverified",CAPPMS Guidelines
+https://www.pmbi.co.in/Data/eBrochure/PMBI%20MEDICINES%20BROCHURE_18102024.pdf,pmbi,"Reuse permission unverified",PMBI Medicines Price List Brochure 2024
+
+
+https://fastapi.tiangolo.com/tutorial/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/first-steps/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/path-params/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/query-params/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/body/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/query-params-str-validations/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/path-params-numeric-validations/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/query-param-models/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/body-multiple-params/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/body-fields/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/body-nested-models/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/schema-extra-example/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/extra-data-types/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/cookie-params/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/header-params/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/cookie-param-models/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/header-param-models/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/response-model/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/extra-models/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/response-status-code/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/request-forms/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/request-form-models/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/request-files/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/request-forms-and-files/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/handling-errors/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/path-operation-configuration/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/encoder/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/body-updates/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/dependencies/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/dependencies/classes-as-dependencies/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/dependencies/sub-dependencies/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-in-path-operation-decorators/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/dependencies/global-dependencies/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/security/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/security/first-steps/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/security/get-current-user/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/security/simple-oauth2/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/middleware/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/cors/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/sql-databases/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/bigger-applications/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/stream-json-lines/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/server-sent-events/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/background-tasks/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/metadata/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/frontend/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/static-files/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/testing/,fastapi-docs,MIT License,
+https://fastapi.tiangolo.com/tutorial/debugging/,fastapi-docs,MIT License,
