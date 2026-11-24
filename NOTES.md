@@ -1,8 +1,8 @@
 # Engineering Notes: GenericFinder
 
-# D03 · PostgreSQL
+## D03 · PostgreSQL
 
-## 1. Migrations (Upgrade → Downgrade → Upgrade)
+### 1. Migrations (Upgrade → Downgrade → Upgrade)
 
 **Commands:**
 
@@ -33,7 +33,7 @@ e3a1a83170de -> 33109253a8d5 (head), add gin index on metadata
 <base> -> 4e1f23d45be8, create documents and pages
 ```
 
-## 2. Loader Idempotency
+### 2. Loader Idempotency
 
 **Run 1:**
 
@@ -53,7 +53,7 @@ records=20 inserted=0 updated=0 unchanged=20
 records=20 inserted=0 updated=1 unchanged=19
 ```
 
-## 3. EXPLAIN Analysis – `?drug_code=VALUE`
+### 3. EXPLAIN Analysis – `?drug_code=VALUE`
 
 **Command:**
 
@@ -61,7 +61,7 @@ records=20 inserted=0 updated=1 unchanged=19
 uv run python scripts/explain.py drug_code VALUE
 ```
 
-### 3.1 Default planner decision
+#### 3.1 Default planner decision
 
 ```text
 Seq Scan on documents
@@ -79,7 +79,7 @@ Planning Time: 4.128 ms
 Execution Time: 0.906 ms
 ```
 
-### 3.2 With sequential scan disabled
+#### 3.2 With sequential scan disabled
 
 ```text
 Bitmap Heap Scan on documents
@@ -104,21 +104,21 @@ Planning Time: 0.077 ms
 Execution Time: 1.347 ms
 ```
 
-### 3.3 Why did the planner choose a Seq Scan? (2 lines)
+#### 3.3 Why did the planner choose a Seq Scan?
 
 The PostgreSQL planner estimated that scanning the entire table would be cheaper than using the index. This may happen when the table is small or the query matches a large percentage of rows.
 
-### 3.4 When would it switch to the GIN index? (1 line)
+#### 3.4 When would it switch to the GIN index?
 
 When the query uses an index-supported operator and the planner estimates that using the GIN index is cheaper than a sequential scan.
 
 ---
 
-# D04 · Docker, Compose and Tests
+## D04 · Docker, Compose and Tests
 
-## 1. Docker Image
+### 1. Docker Image
 
-### 1.1 Image information
+#### 1.1 Image information
 
 **Command:**
 
@@ -129,11 +129,11 @@ docker images genericfinder:dev
 **Output:**
 
 ```text
-IMAGE               ID             DISK USAGE   CONTENT SIZE
-genericfinder:dev   61ad5d9de906    301MB        70MB
+IMAGE              ID             DISK USAGE   CONTENT SIZE
+genericfinder:dev  61ad5d9de906   301MB        70MB
 ```
 
-### 1.2 Verify container user
+#### 1.2 Verify container user
 
 **Command:**
 
@@ -147,7 +147,7 @@ docker run --rm genericfinder:dev id
 uid=999(app) gid=999(app) groups=999(app)
 ```
 
-### 1.3 Build measurements
+#### 1.3 Build measurements
 
 | Measurement | Result |
 |---|---:|
@@ -160,9 +160,9 @@ uid=999(app) gid=999(app) groups=999(app)
 
 Docker cached the dependency installation step because the dependency files hadn't changed, so it reused the existing layer instead of reinstalling packages.
 
-## 2. Docker Compose Stack
+### 2. Docker Compose Stack
 
-### 2.1 Container status
+#### 2.1 Container status
 
 **Command:**
 
@@ -173,14 +173,14 @@ docker compose ps -a
 **Output:**
 
 ```text
-NAME                      IMAGE                    SERVICE   STATUS
-genericfinder-api-1       genericfinder-api        api       Up (healthy)
-genericfinder-db-1        pgvector/pgvector:pg17   db        Up (healthy)
-genericfinder-migrate-1   genericfinder-migrate    migrate   Exited (0)
-genericfinder-redis-1     redis:7-alpine           redis     Up (healthy)
+NAME                      IMAGE                   SERVICE   STATUS
+genericfinder-api-1       genericfinder-api       api       Up (healthy)
+genericfinder-db-1        pgvector/pgvector:pg17  db        Up (healthy)
+genericfinder-migrate-1   genericfinder-migrate   migrate   Exited (0)
+genericfinder-redis-1     redis:7-alpine          redis     Up (healthy)
 ```
 
-### 2.2 Migration logs
+#### 2.2 Migration logs
 
 **Command:**
 
@@ -198,9 +198,9 @@ records=20 inserted=20 updated=0 unchanged=0
 
 Pending: Capture the final migration log line.
 
-## 3. Breaking the Database on Purpose
+### 3. Breaking the Database on Purpose
 
-### 3.1 Expected verification sequence
+#### 3.1 Expected verification sequence
 
 | Condition | Endpoint | Expected result |
 |---|---|---|
@@ -215,17 +215,22 @@ docker compose stop db
 
 curl.exe -i http://localhost:8000/health
 curl.exe -i http://localhost:8000/ready
+```
 
-docker
+**Remaining verification commands and actual output:** Pending.
 
-## D05 · CI/CD and going live
+---
+
+## D05 · CI/CD and Going Live
 
 - **Live URL:** https://prince28-hlt01-genericfinder.onrender.com
 - **CI run for pull request 1:** https://github.com/dharshan2906/prince28-hlt01-genericfinder/actions
-- **First deploy that ran by itself:** https://github.com/dharshan2906/prince28-hlt01-genericfinder/actions
-- **Merge clicked at:** 10:15 AM → "Smoke test passed" at 10:19 AM → **Lead time: 4 min**
+- **First automatic deployment:** https://github.com/dharshan2906/prince28-hlt01-genericfinder/actions
+- **Merge time:** 10:15 AM
+- **Smoke test passed:** 10:19 AM
+- **Lead time:** 4 minutes
 
-### Smoke test output from that CD run
+### 1. Smoke Test Output
 
 ```text
 ✓ Live URL responded successfully
@@ -234,21 +239,21 @@ docker
 ✓ Smoke test passed
 ```
 
-### Rollback drill
+### 2. Rollback Drill
 
-- Rolled back to sha `92d8a64`: started 10:30 AM, smoke passed 10:34 AM (**4 min**).
-- Rolled forward to sha `565cda0`: **5 min**.
-- During the rollback, the database stayed on the newer schema. Why is that safe here?
+- Rolled back to SHA `92d8a64`: started at 10:30 AM; smoke test passed at 10:34 AM (**4 minutes**).
+- Rolled forward to SHA `565cda0`: **5 minutes**.
 
-The rollback changes only the application version; it does not reverse database migrations.
-The newer schema remains compatible with the older application because the migrations are backward-compatible.
+**During the rollback, the database stayed on the newer schema. Why is that safe here?**
 
-### Where my secrets live
+The rollback changes only the application version; it does not reverse database migrations. The newer schema remains compatible with the older application because the migrations are backward-compatible.
 
-- Neon string: GitHub Secret `DATABASE_URL` + Render environment. Not in Git, not in the image.
-- Render deploy hook: GitHub Secret `RENDER_DEPLOY_HOOK` only.
+### 3. Where My Secrets Live
 
-### Monitoring
+- **Neon connection string:** GitHub Secret `DATABASE_URL` and Render environment. Not stored in Git or the Docker image.
+- **Render deploy hook:** GitHub Secret `RENDER_DEPLOY_HOOK` only.
 
-- UptimeRobot checks `/health` every 5 minutes; alerts go to my email.
-- One thing that would make my live app faster on its first request: Keep the Render service always running to prevent cold starts.
+### 4. Monitoring
+
+- UptimeRobot checks `/health` every 5 minutes and sends alerts to my email.
+- Keeping the Render service always running helps prevent cold starts and improves first-request response time.
