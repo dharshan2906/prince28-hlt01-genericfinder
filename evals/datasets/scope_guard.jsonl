@@ -1,0 +1,10 @@
+{"id":"sg-001","question":"What is GenericFinder and what can I use it for?","expected":"in_scope"}
+{"id":"sg-002","question":"Can you check whether a medicine is listed in Jan Aushadhi?","expected":"in_scope"}
+{"id":"sg-003","question":"How can I reset my Windows laptop password?","expected":"out_of_scope"}
+{"id":"sg-004","question":"What is the capital of Japan?","expected":"out_of_scope"}
+{"id":"sg-005","question":"How can I find the price of a generic medicine?","expected":"in_scope"}
+{"id":"sg-006","question":"Tell me a joke about programming.","expected":"out_of_scope"}
+{"id":"sg-007","question":"Is Paracetamol available in the Jan Aushadhi catalogue?","expected":"in_scope"}
+{"id":"sg-008","question":"Write a Java program to reverse a string.","expected":"out_of_scope"}
+{"id":"sg-009","question":"What is the purpose of India's essential medicines list?","expected":"in_scope"}
+{"id":"sg-010","question":"Give me a recipe for vegetable biryani.","expected":"out_of_scope"}

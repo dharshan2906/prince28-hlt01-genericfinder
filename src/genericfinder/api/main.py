@@ -7,7 +7,7 @@ from fastapi import APIRouter, FastAPI
 
 from genericfinder.api.errors import register_error_handlers
 from genericfinder.api.middleware import request_context
-from genericfinder.api.routes import chat, documents, health
+from genericfinder.api.routes import analytics, chat, documents, health
 from genericfinder.config import Settings, get_settings
 from genericfinder.db.llm_calls import make_recorder
 from genericfinder.db.session import make_engine, make_sessionmaker
@@ -41,6 +41,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     v1 = APIRouter(prefix="/v1")
     v1.include_router(documents.router)
     v1.include_router(chat.router)
+    v1.include_router(analytics.router)
     app.include_router(health.router)
     app.include_router(v1)
     return app
