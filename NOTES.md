@@ -366,3 +366,184 @@ The parser successfully processed 62 out of 63 files. One PDF could not be parse
 ### One thing that went wrong today, and how I fixed it
 
 The PMBI medicines brochure failed during parsing with the `no_text_layer` error. Initially, I retried the failed file using `--retry-failed`, but the same issue remained. I checked the failure summary in PostgreSQL and confirmed that the problem was limited to one file. This helped distinguish a document-level extraction issue from a problem with the overall parsing pipeline. The remaining 62 files were successfully processed, giving the corpus a parsing coverage of 98.41%.
+
+# D08 · LLM Gateway Evaluation
+
+## 1. Gateway configuration
+
+| Component | Configuration |
+|---|---|
+| Primary provider | Google Gemini |
+| Primary model declared in the D08 plan | `gemini-3.8-flash` |
+| Fallback provider | Groq |
+| Fallback model | `openai/gpt-oss-20b` |
+
+> **Configuration verification:** The terminal output captured during testing identifies the actual model as `gemini-3.5-flash-lite`, not `gemini-3.8-flash`. Confirm the configured model and update either the application configuration or this report. The measurements below are attributed to the model name printed by the terminal.
+
+## 2. First-question performance
+
+The first captured laptop test was the Jan Aushadhi assistant greeting / scope test. The detailed timing record available in the terminal was:
+
+| Metric | Measured result |
+|---|---:|
+| Provider / model shown in log | Gemini / `gemini-3.5-flash-lite` |
+| Time to first words | 8.25 s |
+| Total response time | 13.21 s |
+| Input tokens | 185 |
+| Output tokens | 24 |
+| Estimated request cost | Rs 0.010972 |
+| Attempts | 1 |
+| Fallback used | No |
+
+**Live deployment measurement:** Not present in the supplied terminal evidence. The second, awake request on the live URL still needs to be timed; do not substitute the laptop result for the live result.
+
+**Day 1 latency target:** First words in under **1.5 seconds**.
+
+**Evaluation:** The measured laptop time to first words (8.25 s) is 6.75 seconds above the target, or about 5.5 times the target. This is a performance gap to investigate. The total response time was 13.21 seconds.
+
+## 3. Token comparison: English against Tamil
+
+The three captured requests produced the following input-token counts:
+
+| Message | Input tokens |
+|---|---:|
+| `Hi` (baseline; mostly system prompt) | 168 |
+| `Explain in one sentence what a refund is.` | 176 |
+| `பணத்தைத் திரும்பப் பெறுதல் என்றால் என்ன என்பதை ஒரே வாக்கியத்தில் விளக்கவும்.` | 184 |
+
+Tamil-to-English token ratio:
+
+`184 / 176 = 1.045`
+
+The Tamil message used approximately **1.05 times** as many input tokens as the English message, or about **4.5% more**.
+
+**Interpretation:** In this specific pair of prompts, the Tamil text used slightly more tokens. This is a single-example comparison, not a general rule for all English and Tamil inputs. Token counts can vary with wording, script, tokeniser and sentence length.
+
+## 4. Behaviour when the answer is not in the documents
+
+### Question 6: live Kendra hours and stock
+
+**Prompt:**
+
+> Is the Jan Aushadhi Kendra on my street open now and does it have stock?
+
+**Exact captured response:**
+
+> That question is outside this product's subject. For any dose or treatment decision, please ask a doctor or pharmacist.
+
+**Evaluation:**
+
+- The assistant did not claim that the Kendra was open.
+- It did not invent stock availability or opening hours.
+- It did not explicitly explain that it cannot access live store hours or inventory.
+- The response therefore avoided fabricating facts, but its limitation message could be more precise.
+
+**Recommended behaviour:** The assistant should say that it cannot verify a specific Kendra's current opening status or medicine stock unless a live store-hours or inventory source is connected. It should not guess.
+
+### Off-topic question
+
+**Prompt:**
+
+> Who won the 2011 cricket world cup?
+
+**Exact captured response:**
+
+> That question is outside this product's subject.
+
+**Evaluation:** The assistant declined the unrelated question in one sentence. This is consistent with the product's narrow scope.
+
+### Incorrect or invented detail
+
+No incorrect opening-hour or stock detail was observed in the supplied output. The assistant did not provide a factual answer to the live-availability question, so there is no demonstrated hallucinated detail to report.
+
+## 5. Fallback and circuit breaker
+
+The configured fallback is `openai/gpt-oss-20b` through Groq. However, the supplied test output shows `attempts=1` and `fallback=no` for the captured Gemini requests.
+
+| Check | Evidence / result |
+|---|---|
+| Primary provider | Gemini |
+| Configured fallback provider | Groq |
+| Configured fallback model | `openai/gpt-oss-20b` |
+| Fallback used in the supplied normal-request logs | No |
+| Provider used when the primary was deliberately broken | Not supplied |
+| Fallback first-word latency | Not supplied |
+| Question number when Gemini error messages stopped appearing | Not supplied |
+
+**Evaluation:** The configuration identifies a fallback, but the supplied normal-request logs do not prove that fallback execution or circuit-breaker recovery succeeded. A deliberate primary-provider failure test and its logs are required before marking this section as passed.
+
+## 6. Usage and cost
+
+The four captured request costs were:
+
+| Request | Cost |
+|---|---:|
+| Greeting (`Hi`) | Rs 0.022601 |
+| English refund question | Rs 0.007391 |
+| Tamil refund question | Rs 0.008806 |
+| Kendra open / stock question | Rs 0.010972 |
+| **Total for these four captured requests** | **Rs 0.049770** |
+
+The cricket question was also tested, but no separate cost or token line for it was included in the supplied output.
+
+### Daily usage summary
+
+| Metric | Value |
+|---|---:|
+| `/v1/usage` calls today | Not supplied |
+| Errors | Not supplied |
+| Fallbacks | Not supplied |
+| `/v1/usage` total cost | Not supplied |
+| Total cost of the four requests listed above | Rs 0.049770 |
+| Average cost across those four requests | Rs 0.0124425 |
+| Day 1 average-cost target | Under Rs 0.50 |
+
+The average above is calculated only from the four requests with recorded costs:
+
+`Rs 0.049770 / 4 = Rs 0.0124425`
+
+This is approximately **Rs 0.0124 per request**, comfortably below the Rs 0.50 target. It is not a substitute for the complete `/v1/usage` daily average, because the full day's call and answer counts have not been provided.
+
+## 7. What went wrong today and how it was addressed
+
+During the live Kendra availability test, the assistant returned a generic out-of-scope message. Although it correctly avoided inventing opening hours or stock information, it did not explain the actual limitation: the application has no confirmed real-time connection to Kendra operating hours or inventory.
+
+**Finding:** The current scope response is safe from an unsupported availability claim, but it is not sufficiently informative for this user question.
+
+**Required improvement:**
+1. Distinguish unsupported general-knowledge questions from questions that are relevant to Jan Aushadhi but require live data.
+2. For live store status and stock questions, clearly state that the information cannot currently be verified.
+3. Do not generate estimated opening hours, stock quantities or availability claims.
+4. If a verified store-hours or inventory integration is added later, answer only from that source and identify when the information was checked.
+
+**Status:** Issue identified; the improved response and any live-data integration still need to be implemented and tested. Do not describe this as fixed until a new test confirms the behaviour.
+
+## 8. Overall D08 assessment
+
+| Area | Current assessment |
+|---|---|
+| English and Tamil scope rejection | Passed in the captured examples |
+| Greeting behaviour | Passed in the captured example |
+| Off-topic rejection | Passed |
+| Avoiding invented live stock / hours | No fabrication observed |
+| Explaining live-data limitations | Needs improvement |
+| Laptop first-word latency | Above target |
+| Cost of four measured requests | Below target |
+| Live URL latency | Measurement pending |
+| Groq fallback | Not verified by supplied logs |
+| Circuit breaker | Not verified by supplied logs |
+| Daily `/v1/usage` totals | Pending |
+
+### Evidence still required to close D08
+
+- [ ] Record first-word latency for the second, awake request on the live URL.
+- [ ] Verify whether the deployed primary model is `gemini-3.8-flash` or `gemini-3.5-flash-lite`.
+- [ ] Run a controlled primary-provider failure test and capture proof that Groq handled the request.
+- [ ] Record fallback first-word latency.
+- [ ] Identify the question number after which Gemini error messages stopped appearing.
+- [ ] Capture `/v1/usage` totals for calls, errors, fallbacks and cost.
+- [ ] Retest the Kendra availability question after improving the limitation response.
+
+---
+
+**Reporting note:** Values marked as measured come directly from the terminal output supplied for this report. Values marked as pending or not supplied have deliberately not been estimated.
