@@ -34,6 +34,22 @@ Strip checker: type the composition from the strip and see exact matches, monthl
 
 100% precision on 60 composition tests (never a wrong strength or release type); 90%+ recall.
 
+## Limitations
+
+- Medicine information depends on the availability and freshness of source datasets.
+- Real-time Jan Aushadhi Kendra stock and opening hours are not currently supported.
+- GenericFinder does not provide medical diagnosis or prescribe medicine.
+- Users should consult a qualified healthcare professional before changing medication.
+
+## Project Highlights
+
+- Retrieval-augmented question answering.
+- Source-grounded responses with document citations.
+- Exact medicine composition matching.
+- Scope guard for unsupported questions.
+- Automated evaluation and testing.
+- PostgreSQL-backed document storage.
+
 ## Run it locally
 
 ```bash
@@ -50,6 +66,15 @@ Then open http://localhost:8000/docs
 uv run pytest
 uv run ruff check .
 ```
+## Documentation
+
+- [Requirements](requirements.md)
+- [Changelog](CHANGELOG.md)
+
+## Project Status
+
+GenericFinder is under active development. Features and evaluation results are updated as development progresses.
+
 ## Run locally in one command
 
 You need Docker Desktop running. From a fresh clone:
