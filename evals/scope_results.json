@@ -1,0 +1,117 @@
+{
+  "evaluated": 10,
+  "failures": [],
+  "metrics": {
+    "true_positives": 4,
+    "false_positives": 0,
+    "false_negatives": 1,
+    "true_negatives": 5,
+    "precision": 1.0,
+    "recall": 0.8,
+    "f1_score": 0.8889,
+    "accuracy": 0.9,
+    "total_examples": 10
+  },
+  "predictions": [
+    {
+      "id": "sg-001",
+      "question": "What is GenericFinder and what can I use it for?",
+      "expected": "in_scope",
+      "predicted": "in_scope",
+      "correct": true,
+      "answer": "GenericFinder helps you find the exact Jan Aushadhi generic medicine match for a given medicine composition. It also checks if the medicine is on India's essential medicines list and shows you the potential cost savings. \n\nPlease note: I give information, not medical advice. For questions about medicine doses or treatment decisions, always ask a doctor or pharmacist.",
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite"
+    },
+    {
+      "id": "sg-002",
+      "question": "Can you check whether a medicine is listed in Jan Aushadhi?",
+      "expected": "in_scope",
+      "predicted": "in_scope",
+      "correct": true,
+      "answer": "I am not sure.",
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite"
+    },
+    {
+      "id": "sg-003",
+      "question": "How can I reset my Windows laptop password?",
+      "expected": "out_of_scope",
+      "predicted": "out_of_scope",
+      "correct": true,
+      "answer": "Outside GenericFinder's scope: I can only help you find Jan Aushadhi generic medicine matches, check essential medicine lists, and estimate savings.",
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite"
+    },
+    {
+      "id": "sg-004",
+      "question": "What is the capital of Japan?",
+      "expected": "out_of_scope",
+      "predicted": "out_of_scope",
+      "correct": true,
+      "answer": "Outside GenericFinder's scope: The capital of Japan is Tokyo.",
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite"
+    },
+    {
+      "id": "sg-005",
+      "question": "How can I find the price of a generic medicine?",
+      "expected": "in_scope",
+      "predicted": "out_of_scope",
+      "correct": false,
+      "answer": "Outside GenericFinder's scope: I can help you find generic medicine matches and estimated savings, but for specific pricing, you should check with a local Jan Aushadhi store or pharmacist.",
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite"
+    },
+    {
+      "id": "sg-006",
+      "question": "Tell me a joke about programming.",
+      "expected": "out_of_scope",
+      "predicted": "out_of_scope",
+      "correct": true,
+      "answer": "Outside GenericFinder's scope: I can only help you find Jan Aushadhi generic medicine matches, check essential medicines, and see potential savings.",
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite"
+    },
+    {
+      "id": "sg-007",
+      "question": "Is Paracetamol available in the Jan Aushadhi catalogue?",
+      "expected": "in_scope",
+      "predicted": "in_scope",
+      "correct": true,
+      "answer": "Yes, Paracetamol is available in the Jan Aushadhi scheme catalogue. It is widely provided in various strengths, such as tablets and syrups, as a generic alternative to branded pain and fever medications. \n\nPlease note, this information is for educational purposes only and does not constitute medical advice. For any questions regarding medicine doses or treatment decisions, always ask a doctor or a pharmacist.",
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite"
+    },
+    {
+      "id": "sg-008",
+      "question": "Write a Java program to reverse a string.",
+      "expected": "out_of_scope",
+      "predicted": "out_of_scope",
+      "correct": true,
+      "answer": "Outside GenericFinder's scope: I can only help you find Jan Aushadhi generic medicine matches, check essential medicine lists, and calculate potential savings.",
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite"
+    },
+    {
+      "id": "sg-009",
+      "question": "What is the purpose of India's essential medicines list?",
+      "expected": "in_scope",
+      "predicted": "in_scope",
+      "correct": true,
+      "answer": "India's essential medicines list—known as the National List of Essential Medicines (NLEM)—includes drugs that satisfy the primary healthcare needs of the population. Its main purpose is to ensure the availability, accessibility, and affordability of quality medicines for everyone. It also helps the government guide public health policies, manage procurement for public hospitals, and regulate prices to keep treatments affordable. \n\nGenericFinder helps you find affordable Jan Aushadhi generic matches for medicine compositions and checks if they are on this essential list. \n\nThis information is for educational purposes only; please consult a doctor or pharmacist for medical advice or treatment decisions.",
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite"
+    },
+    {
+      "id": "sg-010",
+      "question": "Give me a recipe for vegetable biryani.",
+      "expected": "out_of_scope",
+      "predicted": "out_of_scope",
+      "correct": true,
+      "answer": "Outside GenericFinder's scope: I can only help you find Jan Aushadhi generic medicine matches, check essential medicines, and calculate potential savings.",
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite"
+    }
+  ]
+}
