@@ -19,7 +19,7 @@ def events(body: str) -> list[tuple[str, dict]]:
 
 
 def test_chat_without_streaming_returns_json(client, llm):
-    llm.script = ["Use curly braces in the path."]
+    llm.script = ["docs", "Use curly braces in the path."]
     r = client.post(
         "/v1/chat", json={"message": "How do I declare a path parameter?", "stream": False}
     )
@@ -30,7 +30,7 @@ def test_chat_without_streaming_returns_json(client, llm):
 
 
 def test_chat_streams_pieces_and_ends_with_a_done_event(client, llm):
-    llm.script = ["Use curly braces in the path."]
+    llm.script = ["docs", "Use curly braces in the path."]
     r = client.post("/v1/chat", json={"message": "How do I declare a path parameter?"})
     assert r.status_code == 200 and r.headers["content-type"].startswith("text/event-stream")
     received = events(r.text)
@@ -55,7 +55,7 @@ def test_when_no_model_can_answer_the_api_says_503_not_200(client, llm):
 
 
 def test_a_failure_in_the_middle_of_a_stream_is_reported_as_an_error_event(client, llm):
-    llm.script = [("partial", LLMError("HTTP 503: overloaded", retryable=True))]
+    llm.script = ["docs", ("partial", LLMError("HTTP 503: overloaded", retryable=True))]
     r = client.post("/v1/chat", json={"message": "hello"})
     assert r.status_code == 200  # too late to change it: the first bytes were already sent
     assert events(r.text)[-1][0] == "error"

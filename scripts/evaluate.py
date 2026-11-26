@@ -11,7 +11,7 @@ from genericfinder.evaluation import evaluate_scope_guard
 from genericfinder.llm.gateway import LLMUnavailable, build_gateway
 
 ROOT = Path(__file__).resolve().parents[1]
-DATASET_PATH = ROOT / "evals" / "datasets" / "scope_guard.jsonl"
+DATASET_PATH = ROOT / "eval" / "datasets" / "scope_guard.jsonl"
 OUT_OF_SCOPE_PREFIX = "Outside GenericFinder's scope:"
 
 
@@ -88,7 +88,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=ROOT / "evals" / "scope_results.json",
+        default=ROOT / "eval" / "scope_results.json",
         help="Path for evaluation results",
     )
     args = parser.parse_args()

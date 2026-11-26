@@ -547,3 +547,72 @@ During the live Kendra availability test, the assistant returned a generic out-o
 ---
 
 **Reporting note:** Values marked as measured come directly from the terminal output supplied for this report. Values marked as pending or not supplied have deliberately not been estimated.
+
+## D09 · Prompt versions compared
+
+<!-- prompts:start -->
+
+| Prompt version | Correct | Accuracy | Invalid replies | Avg tokens in |
+|---|---|---|---|---|
+| classify_v1 | 18/21 | 86% | 0 | 53 |
+| classify_v2 | 20/21 | 95% | 0 | 237 |
+| classify_v3 | 21/21 | 100% | 0 | 465 |
+| classify_v4 | 20/21 | 95% | 0 | 237 |
+
+<!-- prompts:end -->
+
+### Resumability
+
+Metadata extraction is resumable. Each document's validated metadata
+or failure reason is committed independently to PostgreSQL.
+
+The extraction query skips documents already processed with the
+current prompt version. If execution is interrupted, rerunning the
+same command processes only pending documents.
+
+Failed documents can be retried explicitly using:
+
+`uv run python scripts/extract_metadata.py --retry-failed`
+
+The full available corpus of 57 documents was processed to validate
+metadata extraction across the complete collected dataset rather
+than relying on a smaller sample of 50 documents.
+
+
+### Resumability Test
+
+| Test | Result |
+|---|---|
+| Initial extraction | 57/57 successful |
+| Second execution | pending=0 |
+| Duplicate extraction | 0 documents |
+| Additional token usage | 0 |
+| Additional cost | Rs 0.0000 |
+
+**Result:** Passed. Each document is committed independently.
+Rerunning the extraction script skips documents already processed
+with the current prompt version.
+
+Command: `uv run python scripts/extract_metadata.py`
+
+### Provider-Enforced JSON Schema
+
+Command:
+`uv run python scripts/extract_metadata.py --limit 20 --schema`
+
+Prompt version: `extract_v2`
+
+| Metric | Result |
+|---|---:|
+| Documents processed | 20 |
+| Successful | 20 |
+| Repaired | 0 |
+| Failed | 0 |
+| Input tokens | 47,501 |
+| Output tokens | 3,418 |
+| Cost | Rs 2.1656 |
+| Duration | 211 seconds |
+
+**Observation:** The provider accepted the JSON schema through
+`response_format`. All 20 documents were extracted successfully
+without validation retries or failures. No HTTP 400 error occurred.
