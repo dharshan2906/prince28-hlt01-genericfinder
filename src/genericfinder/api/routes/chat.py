@@ -11,11 +11,18 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from genericfinder.api.deps import GatewayDep, UsageDep
+from genericfinder.llm.classify import classify
 from genericfinder.llm.gateway import LLMResult, LLMUnavailable
 
 router = APIRouter(tags=["chat"])
 
 PROMPT_VERSION = "chat_system_v1"  # the file prompts/chat_system_v1.md
+CLASSIFY_VERSION = "classify_v3"
+
+FIXED_RESPONSES = {
+    "personal": "I can't know that.",
+    "off_topic": "I can only answer questions related to the available documents.",
+}
 
 
 def load_prompt(directory: Path, name: str = PROMPT_VERSION) -> str:
@@ -40,16 +47,42 @@ def summary(result: LLMResult) -> dict:
 
 @router.post("/chat")
 async def chat(body: ChatRequest, request: Request, gateway: GatewayDep):
-    messages = [
-        {"role": "system", "content": request.app.state.system_prompt},
-        {"role": "user", "content": body.message},
-    ]
     try:
+        label, _ = await classify(
+            gateway,
+            request.app.state.classify_prompt,
+            CLASSIFY_VERSION,
+            body.message,
+        )
+
+        if label in FIXED_RESPONSES:
+            answer = FIXED_RESPONSES[label]
+
+            if not body.stream:
+                return {"answer": answer}
+
+            async def fixed_events() -> AsyncIterator[str]:
+                yield sse({"delta": answer})
+                yield sse({"model": "router"}, event="done")
+
+            return StreamingResponse(
+                fixed_events(),
+                media_type="text/event-stream",
+                headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+            )
+
+        messages = [
+            {"role": "system", "content": request.app.state.system_prompt},
+            {"role": "user", "content": body.message},
+        ]
+
         if not body.stream:
             result = await gateway.generate(messages, prompt_version=PROMPT_VERSION)
             return {"answer": result.text, **summary(result)}
+
         stream = gateway.stream(messages, prompt_version=PROMPT_VERSION)
-        first = await anext(stream)  # wait for the first piece BEFORE sending status 200
+        first = await anext(stream)
+
     except LLMUnavailable as exc:
         raise HTTPException(status_code=503, detail=f"No model could answer: {exc}") from exc
 
@@ -62,7 +95,7 @@ async def chat(body: ChatRequest, request: Request, gateway: GatewayDep):
                     return
                 yield sse({"delta": item})
                 item = await anext(stream)
-        except LLMUnavailable as exc:  # the status line is long gone: say it in the stream
+        except LLMUnavailable as exc:
             yield sse({"detail": str(exc)}, event="error")
 
     headers = {"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}

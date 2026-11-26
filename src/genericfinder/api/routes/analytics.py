@@ -6,7 +6,7 @@ from fastapi import APIRouter, Query
 from sqlalchemy import case, func, select
 
 from genericfinder.api.deps import SessionDep
-from genericfinder.db.models import ApiRequest
+from genericfinder.db.models import ApiRequest, LlmCall
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
@@ -151,6 +151,163 @@ async def daily(
                 "date": row.day.date().isoformat(),
                 "requests": row.requests,
                 "errors": row.errors or 0,
+            }
+            for row in rows
+        ],
+    }
+
+
+@router.get("/llm/overview")
+async def llm_overview(
+    session: SessionDep,
+    days: int = Query(default=7, ge=1, le=90),
+) -> dict:
+    """Overall LLM usage, reliability, latency and estimated cost."""
+    statement = select(
+        func.count(LlmCall.id).label("total"),
+        func.sum(case((LlmCall.status == "ok", 1), else_=0)).label("success"),
+        func.sum(case((LlmCall.status == "error", 1), else_=0)).label("errors"),
+        func.sum(LlmCall.tokens_in).label("tokens_in"),
+        func.sum(LlmCall.tokens_out).label("tokens_out"),
+        func.sum(LlmCall.cost_inr).label("cost_inr"),
+        func.avg(LlmCall.latency_ms).label("average_latency"),
+        func.sum(case((LlmCall.fallback_used.is_(True), 1), else_=0)).label("fallbacks"),
+    ).where(LlmCall.created_at >= since_time(days))
+
+    row = (await session.execute(statement)).one()
+    total = row.total or 0
+    success = row.success or 0
+
+    return {
+        "period_days": days,
+        "total_calls": total,
+        "successful_calls": success,
+        "failed_calls": row.errors or 0,
+        "success_rate": round(success / total * 100, 2) if total else 0,
+        "tokens_in": int(row.tokens_in or 0),
+        "tokens_out": int(row.tokens_out or 0),
+        "estimated_cost_inr": round(float(row.cost_inr or 0), 4),
+        "average_latency_ms": round(float(row.average_latency or 0), 2),
+        "fallback_calls": row.fallbacks or 0,
+    }
+
+
+@router.get("/llm/providers")
+async def llm_providers(
+    session: SessionDep,
+    days: int = Query(default=7, ge=1, le=90),
+) -> dict:
+    """Compare LLM provider usage, reliability and cost."""
+    statement = (
+        select(
+            LlmCall.provider,
+            LlmCall.model,
+            func.count(LlmCall.id).label("calls"),
+            func.sum(case((LlmCall.status == "error", 1), else_=0)).label("errors"),
+            func.sum(LlmCall.tokens_in).label("tokens_in"),
+            func.sum(LlmCall.tokens_out).label("tokens_out"),
+            func.sum(LlmCall.cost_inr).label("cost_inr"),
+            func.avg(LlmCall.latency_ms).label("average_latency"),
+        )
+        .where(LlmCall.created_at >= since_time(days))
+        .group_by(LlmCall.provider, LlmCall.model)
+        .order_by(func.count(LlmCall.id).desc())
+    )
+
+    rows = (await session.execute(statement)).all()
+
+    return {
+        "period_days": days,
+        "providers": [
+            {
+                "provider": row.provider,
+                "model": row.model,
+                "calls": row.calls,
+                "errors": row.errors or 0,
+                "tokens_in": int(row.tokens_in or 0),
+                "tokens_out": int(row.tokens_out or 0),
+                "estimated_cost_inr": round(float(row.cost_inr or 0), 4),
+                "average_latency_ms": round(float(row.average_latency or 0), 2),
+            }
+            for row in rows
+        ],
+    }
+
+
+@router.get("/llm/usage")
+async def llm_usage(
+    session: SessionDep,
+    days: int = Query(default=7, ge=1, le=90),
+) -> dict:
+    """Daily LLM calls, token usage and estimated cost in India time."""
+    local_day = func.date_trunc("day", func.timezone("Asia/Kolkata", LlmCall.created_at)).label(
+        "day"
+    )
+
+    statement = (
+        select(
+            local_day,
+            func.count(LlmCall.id).label("calls"),
+            func.sum(LlmCall.tokens_in).label("tokens_in"),
+            func.sum(LlmCall.tokens_out).label("tokens_out"),
+            func.sum(LlmCall.cost_inr).label("cost_inr"),
+        )
+        .where(LlmCall.created_at >= since_time(days))
+        .group_by(local_day)
+        .order_by(local_day)
+    )
+
+    rows = (await session.execute(statement)).all()
+
+    return {
+        "period_days": days,
+        "daily": [
+            {
+                "date": row.day.date().isoformat(),
+                "calls": row.calls,
+                "tokens_in": int(row.tokens_in or 0),
+                "tokens_out": int(row.tokens_out or 0),
+                "estimated_cost_inr": round(float(row.cost_inr or 0), 4),
+            }
+            for row in rows
+        ],
+    }
+
+
+@router.get("/llm/failures")
+async def llm_failures(
+    session: SessionDep,
+    days: int = Query(default=7, ge=1, le=90),
+    limit: int = Query(default=20, ge=1, le=100),
+) -> dict:
+    """Show the most recent failed LLM calls."""
+    statement = (
+        select(
+            LlmCall.created_at,
+            LlmCall.provider,
+            LlmCall.model,
+            LlmCall.purpose,
+            LlmCall.error,
+        )
+        .where(
+            LlmCall.created_at >= since_time(days),
+            LlmCall.status == "error",
+        )
+        .order_by(LlmCall.created_at.desc())
+        .limit(limit)
+    )
+
+    rows = (await session.execute(statement)).all()
+
+    return {
+        "period_days": days,
+        "failures": [
+            {
+                "timestamp": row.created_at.isoformat(),
+                "provider": row.provider,
+                "model": row.model,
+                "purpose": row.purpose,
+                "error": row.error[:200] if row.error else "Unknown error",
             }
             for row in rows
         ],
