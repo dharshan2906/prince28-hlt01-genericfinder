@@ -616,3 +616,293 @@ Prompt version: `extract_v2`
 **Observation:** The provider accepted the JSON schema through
 `response_format`. All 20 documents were extracted successfully
 without validation retries or failures. No HTTP 400 error occurred.
+
+# D10 · Queue and worker
+
+## First run
+
+-   Documents queued: **10**
+-   Finished in: **52.6 seconds**
+-   Done: **10**
+-   Skipped: **0**
+-   Failed: **0**
+-   Pages processed: **33**
+-   Pace: **5.26 seconds per document** (52.6 ÷ 10)
+-   `INGEST_RPM`: **Not recorded**
+-   `INGEST_CONCURRENCY`: **Not recorded**
+
+## Kill test
+
+-   Queued: **20**
+
+-   At the kill:
+
+    -   Queued: **13**
+    -   Running: **2**
+    -   Done: **5**
+    -   Failed: **0**
+
+-   After the new worker: final done + skipped + failed = **Not
+    recorded** (must equal 20).
+
+-   Documents in the database: **Not recorded**
+
+-   Different document IDs: **Not recorded** (must equal the document
+    count).
+
+-   ARQ logged the interrupted jobs with a delay of approximately
+    **471.67 seconds** (`try=2`). The exact elapsed time from worker
+    termination to retry has not been independently measured.
+
+-   Why that long: the jobs were scheduled for a delayed retry by the
+    queue's retry/backoff mechanism. The exact configuration has not
+    been checked.
+
+-   Why nothing was doubled (in my own words):
+
+    > The pipeline is idempotent, so retrying a document does not create
+    > a duplicate document record.
+
+## Dead-letter list
+
+The endpoint returned:
+
+``` json
+{
+  "count": 0,
+  "items": []
+}
+```
+
+  Stage (parse / extract / download / gave up)     Items What I did
+  ---------------------------------------------- ------- -----------------
+  parse                                                0 No retry needed
+  extract                                              0 No retry needed
+  download                                             0 No retry needed
+  gave up                                              0 No retry needed
+
+Running `uv run python scripts/ingest.py --retry-failed` returned
+`Nothing to do: all of it is ingested.` because there were no
+dead-letter items to retry.
+
+## Live ingestion
+
+-   GenericFinder on Render: **Not recorded** of 5 documents done.
+-   Failed: **Not recorded**.
+-   Failure reasons: **Not recorded**.
+-   Status for a request without the token: **Not recorded**.
+
+## Week 2 against Monday's estimate
+
+-   `docs/CAPACITY.md`: **Not recorded** pages and **Not recorded**
+    tokens.
+-   `docs/INGEST_REPORT.md`: **Not recorded** pages and **Not recorded**
+    tokens.
+-   Difference and explanation: **Cannot calculate until both reports
+    are checked.**
+
+## One thing that went wrong today, and how I fixed it
+
+The worker was forcefully terminated while two documents were running. I
+restarted it with `uv run poe worker`. ARQ then picked up delayed jobs
+again; the logs showed item 52 being skipped and items 53 onward
+completing. The dead-letter endpoint remained empty.
+
+## Remaining checks
+
+1.  Retrieve the final status of job `995c368da04e4cf1a0fd5e66614d29ec`
+    and confirm the final counts total 20.
+2.  Query the database for the total document count and distinct
+    document IDs.
+3.  Record the Render ingestion result for all 5 documents.
+4.  Send a request without the required token and record its HTTP
+    status.
+5.  Read `docs/CAPACITY.md` and `docs/INGEST_REPORT.md`, then compare
+    their page and token estimates.
+
+
+## 4. Additional Tests
+- Test cases: 136 unit tests
+- Passed: 136
+- Failed: 0
+- Execution time: 148.87 seconds
+- Warning: Optional PySocks dependency missing (urllib3 SOCKS support)
+
+
+### Two Workers, One Queue
+
+- Workers: 2
+- Queue size: 20
+- Done: 10
+- Skipped: 10
+- Failed: 0
+- Completion time: 58 seconds
+- Duplicate item IDs in supplied logs: 0
+- Worker 1 recovered 8 unfinished items at startup.
+- Worker 2 started approximately 39 seconds after Worker 1.
+- Both workers consumed the shared Redis queue.
+- 2x speedup: Not established.
+- Bottleneck: Shared model-provider quota and processing latency need further measurement.
+
+### Redis Queue Inspection
+- Redis queue type: Sorted Set (zset)
+- Queue size observed: 26
+- Queued jobs observed: ingest:137 through ingest:142
+- Active in-progress locks: None in captured snapshot
+- Job record TTL: 86,214 seconds (~23h 57m)
+- Job serialization: Python pickle
+- Queue inspection: Successful
+
+
+
+138 tests passed
+Full unit-test suite completed successfully:
+- 138 passed
+- 0 failed
+- 1 non-blocking SOCKS dependency warning
+- Runtime: 155.81 seconds
+The D10 changes pass the complete unit-test suite.
+
+
+
+
+### D10 · Queue and worker
+
+- First run: 63 documents queued, finished in 311 s.
+- Done: 62, skipped: 0, failed: 1.
+- Pace: 4.94 s per document (INGEST_RPM = 20, INGEST_CONCURRENCY = 2).
+- Final queue: 0 queued, 0 running.
+- Pages processed: 400.
+- Database verification: 62 done + 1 failed = 63.
+- Failed file: pmbi-medicines-brochure-18102024-aeb9ec25.pdf
+- Failure reason: parse: no_text_layer
+
+
+
+### Database report
+
+Documents in database: 16
+Pages: 165
+Tokens of text: 86,976
+Files parser gave up on: 1
+Documents with extracted record: 16
+Documents whose extraction failed: 0
+
+Ingest jobs started: 11
+Items finished: 136
+Items needing more than one try: 2
+Dead-letter items: 0
+
+Extraction model calls: 198
+Tokens in: 500,638
+Tokens out: 32,162
+Cost: Rs 21.72
+
+uv run python scripts/ingest.py --limit 63
+HTTP 202: job d74cde8e0e9f40e9977c930a8d1d8268, 63 queued
+working   queued=63 running=0 done=0 skipped=0 failed=0 pages=0 0s
+working   queued=61 running=1 done=1 skipped=0 failed=0 pages=1 3s
+working   queued=60 running=2 done=1 skipped=0 failed=0 pages=1 6s
+working   queued=59 running=2 done=2 skipped=0 failed=0 pages=2 9s
+working   queued=58 running=2 done=3 skipped=0 failed=0 pages=3 15s
+working   queued=57 running=2 done=3 skipped=0 failed=1 pages=3 18s
+working   queued=56 running=2 done=4 skipped=0 failed=1 pages=4 21s
+working   queued=55 running=2 done=5 skipped=0 failed=1 pages=5 24s
+working   queued=54 running=2 done=6 skipped=0 failed=1 pages=6 30s
+working   queued=53 running=2 done=7 skipped=0 failed=1 pages=7 36s
+working   queued=52 running=2 done=8 skipped=0 failed=1 pages=8 42s
+working   queued=51 running=2 done=9 skipped=0 failed=1 pages=9 48s
+working   queued=51 running=1 done=10 skipped=0 failed=1 pages=10 52s
+working   queued=50 running=2 done=10 skipped=0 failed=1 pages=10 54s
+working   queued=49 running=2 done=11 skipped=0 failed=1 pages=14 58s
+working   queued=48 running=2 done=12 skipped=0 failed=1 pages=149 64s
+working   queued=47 running=2 done=13 skipped=0 failed=1 pages=155 67s
+working   queued=46 running=2 done=14 skipped=0 failed=1 pages=159 73s
+working   queued=46 running=1 done=15 skipped=0 failed=1 pages=162 76s
+working   queued=45 running=2 done=15 skipped=0 failed=1 pages=162 79s
+working   queued=44 running=2 done=16 skipped=0 failed=1 pages=165 82s
+working   queued=43 running=2 done=17 skipped=0 failed=1 pages=175 88s
+working   queued=42 running=2 done=18 skipped=0 failed=1 pages=179 94s
+working   queued=41 running=2 done=19 skipped=0 failed=1 pages=182 97s
+working   queued=40 running=2 done=20 skipped=0 failed=1 pages=186 103s
+working   queued=40 running=1 done=21 skipped=0 failed=1 pages=188 106s
+working   queued=39 running=2 done=21 skipped=0 failed=1 pages=188 109s
+working   queued=38 running=2 done=22 skipped=0 failed=1 pages=192 112s
+working   queued=37 running=2 done=23 skipped=0 failed=1 pages=198 118s
+working   queued=37 running=1 done=24 skipped=0 failed=1 pages=201 121s
+working   queued=36 running=2 done=24 skipped=0 failed=1 pages=201 124s
+working   queued=35 running=2 done=25 skipped=0 failed=1 pages=202 127s
+working   queued=34 running=2 done=26 skipped=0 failed=1 pages=204 133s
+working   queued=34 running=1 done=27 skipped=0 failed=1 pages=206 136s
+working   queued=33 running=2 done=27 skipped=0 failed=1 pages=206 139s
+working   queued=32 running=2 done=28 skipped=0 failed=1 pages=209 142s
+working   queued=31 running=2 done=29 skipped=0 failed=1 pages=217 148s
+working   queued=31 running=1 done=30 skipped=0 failed=1 pages=221 151s
+working   queued=30 running=2 done=30 skipped=0 failed=1 pages=221 154s
+working   queued=29 running=2 done=31 skipped=0 failed=1 pages=223 157s
+working   queued=28 running=2 done=32 skipped=0 failed=1 pages=225 163s
+working   queued=28 running=1 done=33 skipped=0 failed=1 pages=229 166s
+working   queued=27 running=2 done=33 skipped=0 failed=1 pages=229 169s
+working   queued=26 running=2 done=34 skipped=0 failed=1 pages=234 172s
+working   queued=25 running=2 done=35 skipped=0 failed=1 pages=235 178s
+working   queued=25 running=1 done=36 skipped=0 failed=1 pages=240 182s
+working   queued=24 running=2 done=36 skipped=0 failed=1 pages=240 184s
+working   queued=23 running=2 done=37 skipped=0 failed=1 pages=243 188s
+working   queued=22 running=2 done=38 skipped=0 failed=1 pages=244 194s
+working   queued=22 running=1 done=39 skipped=0 failed=1 pages=247 197s
+working   queued=21 running=2 done=39 skipped=0 failed=1 pages=247 200s
+working   queued=20 running=2 done=40 skipped=0 failed=1 pages=252 203s
+working   queued=19 running=2 done=41 skipped=0 failed=1 pages=258 209s
+working   queued=18 running=2 done=42 skipped=0 failed=1 pages=261 212s
+working   queued=17 running=2 done=43 skipped=0 failed=1 pages=264 218s
+working   queued=16 running=2 done=44 skipped=0 failed=1 pages=265 221s
+working   queued=15 running=2 done=45 skipped=0 failed=1 pages=272 227s
+working   queued=14 running=2 done=46 skipped=0 failed=1 pages=274 233s
+working   queued=14 running=1 done=47 skipped=0 failed=1 pages=278 236s
+working   queued=13 running=2 done=47 skipped=0 failed=1 pages=278 239s
+working   queued=12 running=2 done=48 skipped=0 failed=1 pages=283 242s
+working   queued=11 running=2 done=49 skipped=0 failed=1 pages=296 248s
+working   queued=11 running=1 done=50 skipped=0 failed=1 pages=315 251s
+working   queued=10 running=2 done=50 skipped=0 failed=1 pages=315 254s
+working   queued=9 running=2 done=51 skipped=0 failed=1 pages=317 257s
+working   queued=8 running=2 done=52 skipped=0 failed=1 pages=319 263s
+working   queued=8 running=1 done=53 skipped=0 failed=1 pages=366 266s
+working   queued=7 running=2 done=53 skipped=0 failed=1 pages=366 269s
+working   queued=6 running=2 done=54 skipped=0 failed=1 pages=375 272s
+working   queued=5 running=2 done=55 skipped=0 failed=1 pages=379 278s
+working   queued=5 running=1 done=56 skipped=0 failed=1 pages=384 281s
+working   queued=4 running=2 done=56 skipped=0 failed=1 pages=384 284s
+working   queued=3 running=2 done=57 skipped=0 failed=1 pages=387 287s
+working   queued=2 running=2 done=58 skipped=0 failed=1 pages=390 293s
+working   queued=2 running=1 done=59 skipped=0 failed=1 pages=393 296s
+working   queued=1 running=2 done=59 skipped=0 failed=1 pages=393 299s
+working   queued=0 running=2 done=60 skipped=0 failed=1 pages=394 302s
+working   queued=0 running=1 done=61 skipped=0 failed=1 pages=399 308s
+finished  queued=0 running=0 done=62 skipped=0 failed=1 pages=400 311s
+FAILED   data/raw/pmbi/pmbi-medicines-brochure-18102024-aeb9ec25.pdf  (1 try)  parse: no_text_layer
+
+One failed document
+
+data/raw/pmbi/pmbi-medicines-brochure-18102024-aeb9ec25.pdf
+
+Reason: parse: no_text_layer
+
+This indicates the PDF has no extractable text layer. It may require OCR. Do not count this as a worker or queue failure.
+
+
+
+D10 · Queue and Worker in your report.
+Live Queue Monitoring — API Stats Endpoint
+Endpoint: GET http://localhost:8000/v1/ingest/stats
+
+
+Queue status snapshot:
+
+Queued: 24
+Running: 2
+Done: 36
+Skipped: 0
+Failed: 1
+
+Total items: 63
+Oldest queued item age: 183.8 seconds
