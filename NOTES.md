@@ -906,3 +906,29 @@ Failed: 1
 
 Total items: 63
 Oldest queued item age: 183.8 seconds
+
+
+## Kill Test — Successful
+
+- **Job ID:** `995c368da04e4cf1a0fd5e66614d29ec`
+- **Documents requested:** 20
+- **At the time of termination:**
+  - Queued: 13
+  - Running: 2
+  - Done: 5
+  - Failed: 0
+- **After worker restart:**
+  - Done: 19
+  - Skipped: 1
+  - Failed: 0
+  - Queued: 0
+  - Running: 0
+- **Pages processed:** 69
+- **Total completion time:** 542.3 seconds
+- **Dead-letter items:** 0
+
+**Verification:** 19 done + 1 skipped + 0 failed = 20 requested items.
+
+**Result:** Passed. After the worker was terminated and restarted, the queue recovered and all 20 items reached a terminal state. One item was skipped, with no permanent failures or pending jobs.
+
+**Learning:** ARQ retry and recovery mechanisms allow interrupted work to resume. Idempotent processing helps prevent duplicate document records.
